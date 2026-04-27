@@ -1,21 +1,19 @@
 /**
- * ФИЗИЧЕСКОЕ ЯДРО (Метод Роторов / Vorticity-Stream Function)
- * ИСПРАВЛЕННАЯ ВЕРСИЯ: Стабильная математика без численных взрывов
+ * Метод Роторов / Vorticity-Stream Function
  */
 
 const canvas = document.getElementById('vortexCanvas');
 const ctx = canvas.getContext('2d');
 
-// Параметры сетки (переведены в Grid-Units для 100% стабильности)
+// Параметры сетки переведены в Grid-Units для 100% стабильности
 const res = 100;
 const iter = 30; // Итерации для уравнения Пуассона
 const dt = 0.2; // Внутренний шаг времени
-const nu = 0.05; // Вязкость (помогает вихрям отрываться от стенки)
+const nu = 0.05; // Вязкость 
 
-// Массивы сетки
-let W = new Float32Array(res * res); // Завихренность (ω)
+let W = new Float32Array(res * res); // ω
 let newW = new Float32Array(res * res);
-let S = new Float32Array(res * res); // Функция тока (ψ)
+let S = new Float32Array(res * res); // ψ
 let U = new Float32Array(res * res); // Скорость X
 let V = new Float32Array(res * res); // Скорость Y
 let mask = new Float32Array(res * res); // 1 = воздух, 0 = твердое тело
@@ -31,7 +29,7 @@ let currentWheelOmega = 8.0;
 let numParticles = 4000;
 let particles = [];
 
-// Безопасная индексация 1D массива (исключает выход за границы)
+// исключает выход за границы
 function ix(i, j) {
     let cl_i = Math.max(0, Math.min(res - 1, Math.floor(i)));
     let cl_j = Math.max(0, Math.min(res - 1, Math.floor(j)));
@@ -63,24 +61,22 @@ function init() {
     }
 }
 
-// 1. Граничные условия: Генерация вихрей СТРОГО на твердой стенке
+// Генерация вихрей онли на твердой стенке
 function setBoundaryVorticity() {
     for (let i = 1; i < res - 1; i++) {
         for (let j = 1; j < res - 1; j++) {
-            if (mask[ix(i, j)] === 0.0) { // Мы на твердом теле
+            if (mask[ix(i, j)] === 0.0) { 
                 let wall_w = 0;
                 let count = 0;
 
                 // Линейная скорость этой точки колеса
                 let vx_wall = 0;
                 let vy_wall = 0;
-                if (j < groundY) { // Земля (j >= groundY) неподвижна
+                if (j < groundY) { 
                     vx_wall = -currentWheelOmega * (j - cy) * 0.015;
                     vy_wall =  currentWheelOmega * (i - cx) * 0.015;
                 }
 
-                // ИСПРАВЛЕНИЕ: Формула Тома ДОЛЖНА иметь минус перед S (Функцией тока).
-                // Это создает отрицательную обратную связь, приводя поток к равновесию.
                 if (mask[ix(i+1, j)] === 1.0) { wall_w += -2 * S[ix(i+1, j)] - 2 * vy_wall; count++; }
                 if (mask[ix(i-1, j)] === 1.0) { wall_w += -2 * S[ix(i-1, j)] + 2 * vy_wall; count++; }
                 if (mask[ix(i, j+1)] === 1.0) { wall_w += -2 * S[ix(i, j+1)] + 2 * vx_wall; count++; }
@@ -89,19 +85,19 @@ function setBoundaryVorticity() {
                 if (count > 0) {
                     W[ix(i, j)] = wall_w / count;
                 } else {
-                    W[ix(i, j)] = 0; // Глубоко внутри стенки вихрей нет
+                    W[ix(i, j)] = 0; 
                 }
             }
         }
     }
 }
 
-// 2. Уравнение Пуассона для Функции Тока
+// Уравнение Пуассона для Функции Тока
 function solveStreamFunction() {
     for (let k = 0; k < iter; k++) {
         for (let i = 1; i < res - 1; i++) {
             for (let j = 1; j < res - 1; j++) {
-                if (mask[ix(i, j)] === 1.0) { // Только в воздухе
+                if (mask[ix(i, j)] === 1.0) { 
                     S[ix(i, j)] = (S[ix(i+1, j)] + S[ix(i-1, j)] + S[ix(i, j+1)] + S[ix(i, j-1)] + W[ix(i, j)]) * 0.25;
                 }
             }
@@ -109,7 +105,7 @@ function solveStreamFunction() {
     }
 }
 
-// 3. Расчет скоростей из Функции Тока (u = dS/dy, v = -dS/dx)
+// u = dS/dy, v = -dS/dx
 function calcVelocities() {
     for (let i = 1; i < res - 1; i++) {
         for (let j = 1; j < res - 1; j++) {
@@ -124,7 +120,7 @@ function calcVelocities() {
     }
 }
 
-// 4. Перенос вихрей воздухом (Advection) + Диффузия (Вязкость)
+// Перенос вихрей воздухом + Диффузия 
 function advectVorticity() {
     newW.set(W);
 
@@ -141,18 +137,18 @@ function advectVorticity() {
 
     for (let i = 1; i < res - 1; i++) {
         for (let j = 1; j < res - 1; j++) {
-            if (mask[ix(i, j)] === 1.0) { // Двигаем вихри только внутри воздуха
-                // Откуда прилетел этот воздух?
+            if (mask[ix(i, j)] === 1.0) { 
+                // Откуда прилетел этот воздух
                 let x = i - U[ix(i, j)] * dt;
                 let y = j - V[ix(i, j)] * dt;
 
-                // Вязкость (забирает завихренность со стенок внутрь)
+                // Вязкость
                 let diff = nu * dt * (W[ix(i+1, j)] + W[ix(i-1, j)] + W[ix(i, j+1)] + W[ix(i, j-1)] - 4 * W[ix(i,j)]);
 
                 let next_w = getW(x, y) + diff;
 
-                // ЗАЩИТА: С учетом правильной математики, жесткий clamp больше не нужен,
-                // но оставим безопасный коридор от аномалий чисел с плавающей точкой.
+                // Раньше тут был Clamp, он работал неверно
+                // оставил какую-никакую защиту от аномалий чисел с плавающей точкой.
                 newW[ix(i, j)] = Math.max(-100, Math.min(100, next_w));
             }
         }
@@ -160,9 +156,9 @@ function advectVorticity() {
     W.set(newW);
 }
 
-// 5. Движение частиц для визуализации
+// Движение частиц для визуализации
 function advectParticles() {
-    // Вспомогательная функция для плавного течения маркеров (билинейная интерполяция)
+    // Вспомогательная функция для плавного течения маркеров
     function getInterpolatedVelocity(x, y, arr) {
         let i = Math.floor(x); let j = Math.floor(y);
         let fx = x - i; let fy = y - j;
@@ -172,18 +168,16 @@ function advectParticles() {
     }
 
     for (let p of particles) {
-        // ИСПРАВЛЕНИЕ: Получаем интерполированную скорость, чтобы частицы не "прыгали" по сетке
+        // Получаем интерполированную скорость, чтобы частицы не прыгали по сетке
         let u = getInterpolatedVelocity(p.x, p.y, U);
         let v = getInterpolatedVelocity(p.x, p.y, V);
 
         p.x += u * dt;
         p.y += v * dt;
 
-        // Жесткие рамки канваса
         if (p.x < 1) p.x = 1; if (p.x > res - 2) p.x = res - 2;
         if (p.y < 1) p.y = 1; if (p.y > res - 2) p.y = res - 2;
 
-        // Мягкое выталкивание из стенок колеса
         if (mask[ix(p.x, p.y)] === 0.0) {
             let dx = cx - p.x; let dy = cy - p.y;
             let len = Math.sqrt(dx*dx + dy*dy) || 1;
@@ -200,9 +194,9 @@ function simulate() {
     advectParticles();
 }
 
-// --- ОТРИСОВКА ---
+// отрисовка
 function getVorticityColor(w) {
-    let val = Math.max(-1, Math.min(1, w * 0.4)); // 0.4 - масштаб цвета
+    let val = Math.max(-1, Math.min(1, w * 0.4)); 
     if (val > 0) {
         return `rgba(${Math.floor(255 * val)}, 20, 20, ${val * 0.9})`;
     } else {
@@ -241,7 +235,7 @@ function draw() {
             for (let j = 0; j < res; j+=2) {
                 if (mask[ix(i, j)] === 1.0) {
                     let s_val = Math.abs(S[ix(i, j)]);
-                    if (s_val % 2.0 < 0.3) { // Линии уровня
+                    if (s_val % 2.0 < 0.3) { 
                         ctx.fillRect(i * cellW, j * cellH, 2, 2);
                     }
                 }
@@ -256,7 +250,6 @@ function draw() {
         }
     }
 
-    // Обводка колеса и земля
     ctx.strokeStyle = '#6ee7b7';
     ctx.lineWidth = 2;
     ctx.beginPath();
