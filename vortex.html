@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Метод Роторов: Симуляция Колеса</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #111827; color: #f3f4f6; font-family: sans-serif; overflow: hidden; }
+        canvas { background-color: #000000; border-radius: 0.5rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); }
+        .control-panel { background: rgba(31, 41, 55, 0.9); backdrop-filter: blur(10px); border: 1px solid #374151; }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center p-4 gap-6">
+
+<!-- Холст для симуляции -->
+<div class="relative">
+    <canvas id="vortexCanvas" width="600" height="600"></canvas>
+</div>
+
+<!-- Панель управления -->
+<div class="control-panel w-80 p-6 rounded-xl flex flex-col gap-5">
+    <h1 class="text-xl font-bold text-white mb-2">Метод Роторов (ω-ψ)</h1>
+
+    <div>
+        <label class="block text-sm font-medium mb-1">Скорость вращения (Ω): <span id="omegaVal" class="text-emerald-400">8.0</span></label>
+        <input type="range" id="omegaSlider" min="-20" max="20" step="0.5" value="8" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+        <p class="text-xs text-gray-400 mt-1">Генерирует завихренность на стенках.</p>
+    </div>
+
+    <button id="stopBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg shadow-red-600/20">
+        Резкая остановка (Ω = 0)
+    </button>
+
+    <hr class="border-gray-600 my-2">
+
+    <div class="space-y-3">
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showVorticity" checked class="form-checkbox h-5 w-5 text-emerald-500 rounded bg-gray-700 border-gray-500">
+            <span>Завихренность (ω)</span>
+        </label>
+
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showStreamlines" class="form-checkbox h-5 w-5 text-emerald-500 rounded bg-gray-700 border-gray-500">
+            <span>Функция тока (ψ)</span>
+        </label>
+
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showParticles" checked class="form-checkbox h-5 w-5 text-emerald-500 rounded bg-gray-700 border-gray-500">
+            <span>Маркеры (Частицы)</span>
+        </label>
+    </div>
+
+    <div class="mt-4 text-xs text-gray-400 bg-gray-800 p-3 rounded">
+        Сетка: 100x100 ячеек<br>
+        Формулировка: Vorticity-Stream<br>
+        Решатель Пуассона (ψ): 30 итераций
+    </div>
+</div>
+
+<!-- Подключение логики симуляции -->
+<script src="vortex_simulation.js"></script>
+</body>
+</html>

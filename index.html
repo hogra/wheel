@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="h-screen w-screen flex items-center justify-center p-4 gap-6">
+
+<!-- для симуляции -->
+<div class="relative">
+    <canvas id="simCanvas" width="600" height="600"></canvas>
+</div>
+
+<div class="control-panel w-80 p-6 rounded-xl flex flex-col gap-5">
+
+    <div>
+        <label class="block text-sm font-medium mb-1">Скорость вращения: <span id="omegaVal" class="text-blue-400">5.0</span></label>
+        <input type="range" id="omegaSlider" min="-15" max="15" step="0.5" value="5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+
+    </div>
+
+    <button id="stopBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg shadow-red-600/20">
+        ω = 0
+    </button>
+
+    <hr class="border-slate-600 my-2">
+
+    <div class="space-y-3">
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showParticles" checked class="form-checkbox h-5 w-5 text-blue-500 rounded bg-slate-700 border-slate-500">
+            <span>Маркеры</span>
+        </label>
+
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showPressure" class="form-checkbox h-5 w-5 text-blue-500 rounded bg-slate-700 border-slate-500">
+            <span>Поле давления (P)</span>
+        </label>
+
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="showVelocity" class="form-checkbox h-5 w-5 text-blue-500 rounded bg-slate-700 border-slate-500">
+            <span>Векторы скорости</span>
+        </label>
+    </div>
+
+</div>
+
+<script src="main.js"></script>
