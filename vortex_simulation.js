@@ -5,7 +5,6 @@
 const canvas = document.getElementById('vortexCanvas');
 const ctx = canvas.getContext('2d');
 
-// Параметры сетки переведены в Grid-Units для 100% стабильности
 const res = 100;
 const iter = 30; // Итерации для уравнения Пуассона
 const dt = 0.2; // Внутренний шаг времени
